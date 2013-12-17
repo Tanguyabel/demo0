@@ -225,7 +225,7 @@ int main()
     sf::Music music;
     music.openFromFile("music.ogg");
     music.setPitch(1.0);
-    // music.play();
+    music.play();
 
     // tempo
     int BPM = 129;
@@ -310,7 +310,6 @@ int main()
         {
             onTic = true;
             ++tic;
-            std::cout << tic << "\n";
         }
         t_ = t;
 
@@ -319,14 +318,14 @@ int main()
             lightsNb = 1;
             lights[0] = {0,0,0, 1.0};
 
-            cameraOrigin = {0,200,-4000};
+            cameraOrigin = {0,0,-4000};
             cameraTarget = {0,0,0};
 
             objectsNb = 1;
 
             spheres[0] = {0,0,0, 1000};
             colors[0] = {.6, .6, .6};
-            attributes[0] = {.5, .5, 8};
+            attributes[0] = {.8, 1.0, 16};
 
             objectsNb = 19;
             for (int i = 0; i < 18; ++i)
@@ -347,8 +346,8 @@ int main()
 
             for (int i = 0; i < 18; ++i)
             {
-                float c = COS(i * 20 + double(T) / 100);
-                float s = SIN(i * 20 + double(T) / 100);
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
                 spheres[i+1].x = 1400 * c;
                 spheres[i+1].z = 1400 * s;
             }
@@ -359,11 +358,11 @@ int main()
 
             for (int i = 0; i < 18; ++i)
             {
-                float c = COS(i * 20 + double(T) / 100);
-                float s = SIN(i * 20 + double(T) / 100);
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
                 spheres[i+1].x = 1400 * c;
                 spheres[i+1].z = 1400 * s;
-                spheres[i+1].y += 1;
+                spheres[i+1].y += 2;
             }
 
             updateScene = true;
