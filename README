@@ -1,0 +1,42 @@
+This is a small demo
+====================
+
+The core is a basic raytracer engine in a fragment shader (GLSL).
+It is able to play a music and animate scenes on it.
+For now it handles only spheres as objects, and multi-directional lights.
+The camera is movable too.
+
+dependencies
+------------
+
+* SFML (include in the project, see below)
+* OpenGL with GLSL >= 1.30 supported
+
+
+instructions
+------------
+
+  $ make
+  $ ./demo
+
+if you don't have installed SFML, you should run
+
+  $ make run
+
+instead of
+
+  $ ./demo
+
+
+how to use it
+-------------
+
+Look at the code in main.cpp.
+You must set the correct BPM for the song you want to play with (ogg vorbis
+format).
+
+more
+----
+
+* tested on Nvidia gpu with 'nouveau' driver
+* tested on NVidia gpu with Nvidia driver
