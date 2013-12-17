@@ -121,7 +121,7 @@ vec3 compColor(vec3 a, vec3 dir, vec3 inter, vec3 normal, vec3 s, int i)
     return color;
 }
 
-vec3 ray(vec3 a_, vec3 dir_)
+vec3 castRay(vec3 a_, vec3 dir_)
 {
     int curObj = -1;
     vec3 color = vec3(0f, 0f, 0f);
@@ -129,7 +129,7 @@ vec3 ray(vec3 a_, vec3 dir_)
     vec3 a = a_;
     vec3 dir = dir_;
 
-    for (int rec = 0; rec <= 2; ++rec)
+    for (int rec = 0; rec <= 8; ++rec)
     {
         float d = 1e30;
         int o = -1;
@@ -180,5 +180,5 @@ void main()
     vec3 a = origin + p.x * u + p.y * v;
     vec3 dir = normalize(a - (origin - (focal * normal)));
 
-    vertexColor = vec4(ray(a, dir), 1f);
+    vertexColor = vec4(castRay(a, dir), 1f);
 }

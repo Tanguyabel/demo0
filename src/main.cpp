@@ -66,7 +66,7 @@ vec3 operator-(const vec3& u, const vec3& v)
     w.z = u.z - v.z;
     return w;
 }
-vec3 vect(const vec3& u, const vec3& v)
+vec3 cross(const vec3& u, const vec3& v)
 {
     vec3 w;
     w.x = u.y * v.z - u.z * v.y;
@@ -99,18 +99,18 @@ void getCamera(const vec3& origin, const vec3& target, vec3& n, vec3& u, vec3& v
     {
         a.x = 1;
         a.y = 0;
-        v = normalize(vect(a, n));
-        u = normalize(vect(n, v));
+        v = normalize(cross(a, n));
+        u = normalize(cross(n, v));
     }
     else
     {
         a.x = 0;
         a.y = 1;
-        u = normalize(vect(n, a));
-        v = normalize(vect(u, n));
+        u = normalize(cross(n, a));
+        v = normalize(cross(u, n));
     }
 
-    n = normalize(vect(v, u));
+    n = normalize(cross(v, u));
 
     // fovy = 45 degrees
     focal = fabs(width / (2.0 * 0.41421356237309503));
@@ -336,7 +336,7 @@ int main()
             ++tic;
         t_ = t;
 
-        cameraOrigin.z -= 1;
+        cameraOrigin.z -= 5;
 
         if (updateCamera || firstTime)
         {
