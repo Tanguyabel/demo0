@@ -328,7 +328,7 @@ int main()
 
         bool updateCamera = true;
         bool updateScene = false;
-        bool updateLights = false;
+        bool updateLights = true;
 
         T = time.asMilliseconds();
         t = 2 * (double(T % u) / u) - 1.0;
@@ -336,7 +336,11 @@ int main()
             ++tic;
         t_ = t;
 
-        cameraOrigin.z -= 5;
+        cameraOrigin.z -= 10;
+
+        lights[0].x = cameraOrigin.x;
+        lights[0].y = cameraOrigin.y;
+        lights[0].z = cameraOrigin.z;
 
         if (updateCamera || firstTime)
         {

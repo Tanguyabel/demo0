@@ -123,13 +123,16 @@ vec3 compColor(vec3 a, vec3 dir, vec3 inter, vec3 normal, vec3 s, int i)
 
 vec3 castRay(vec3 a_, vec3 dir_)
 {
+    float attenuationLimit = 10000;
+
     int curObj = -1;
     vec3 color = vec3(0f, 0f, 0f);
 
     vec3 a = a_;
     vec3 dir = dir_;
+    float attenuation = 0;
 
-    for (int rec = 0; rec <= 8; ++rec)
+    while (attenuation < attenuationLimit)
     {
         float d = 1e30;
         int o = -1;
@@ -147,6 +150,10 @@ vec3 castRay(vec3 a_, vec3 dir_)
 
         if (o >= 0)
         {
+            attenuation += d;
+            if (attenuation > attenuationLimit)
+                break;
+
             // intersection point
             vec3 inter = a + d * dir;
             // object's normal at the intersection
@@ -159,7 +166,7 @@ vec3 castRay(vec3 a_, vec3 dir_)
             else
                 color += attr[curObj].y * compColor(a, dir, inter, n, s, o);
             if (attr[o].y == 0)
-                rec = 10; // break
+                break;
             else
             {
                 curObj = o;
@@ -168,7 +175,7 @@ vec3 castRay(vec3 a_, vec3 dir_)
             }
         }
         else
-            rec = 10; // break
+            break;
     }
 
     return color;
@@ -177,6 +184,7 @@ vec3 castRay(vec3 a_, vec3 dir_)
 void main()
 {
     // ray to launch from this pixel
+
     vec3 a = origin + p.x * u + p.y * v;
     vec3 dir = normalize(a - (origin - (focal * normal)));
 
