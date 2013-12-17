@@ -110,10 +110,10 @@ void getCamera(const vec3& origin, const vec3& target, vec3& n, vec3& u, vec3& v
         v = normalize(vect(u, n));
     }
 
-    // fovy = 45 degrees (NOT USED)
-    // focal = fabs(width / (2.0 * 0.41421356237309503));
-    // focal /= 2;
-    focal = width / 45.0;
+    n = normalize(vect(v, u));
+
+    // fovy = 45 degrees
+    focal = fabs(width / (2.0 * 0.41421356237309503));
 }
 
 /***********/
@@ -243,7 +243,7 @@ int main()
     /************************/
 
     // objects
-    objectsNb = 5;
+    objectsNb = 4;
 
     spheres[0] = {-100,0,0, 60};
     colors[0] = {0,1,0};
@@ -261,9 +261,9 @@ int main()
     colors[3] = {0,0,1};
     attributes[3] = {0, 1.0, 8.0};
 
-    spheres[4] = {0,0,-180, 20};
-    colors[4] = {0,1,1};
-    attributes[4] = {0, 1.0, 8.0};
+    // spheres[4] = {0,0,-180, 20};
+    // colors[4] = {0,1,1};
+    // attributes[4] = {0, 1.0, 8.0};
 
 
     // lights
@@ -277,6 +277,10 @@ int main()
     /*************/
     /* MAIN LOOP */
     /*************/
+
+    // deleteme
+    focal = width / 45.0;
+    focal = -.1;
 
     unsigned tic = 0; // tempo indicator
     double t, t_; // bpm indicator (and previous)
@@ -322,7 +326,7 @@ int main()
         // clear the buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        bool updateCamera = false;
+        bool updateCamera = true;
         bool updateScene = false;
         bool updateLights = false;
 
@@ -331,6 +335,8 @@ int main()
         if (t_ > 0 && t < 0)
             ++tic;
         t_ = t;
+
+        cameraOrigin.z -= 1;
 
         if (updateCamera || firstTime)
         {

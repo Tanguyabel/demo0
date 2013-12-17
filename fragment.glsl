@@ -176,12 +176,9 @@ vec3 ray(vec3 a_, vec3 dir_)
 
 void main()
 {
-    vertexColor = vec4(0f, 0f, 0f, 1f);
-
     // ray to launch from this pixel
     vec3 a = origin + p.x * u + p.y * v;
-    /* vec3 dir = a - (origin - focal * normal); */
-    vec3 dir = normal;
+    vec3 dir = normalize(a - (origin - (focal * normal)));
 
     vertexColor = vec4(ray(a, dir), 1f);
 }
