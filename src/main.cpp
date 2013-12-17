@@ -7,12 +7,42 @@
 #include <fstream>
 #include <cmath>
 
+/*************/
+/* CONSTANTS */
+/*************/
+
 #define WINDOW_WIDTH    800
 #define WINDOW_HEIGHT   600
 
 #define LOG_MAX_LEN     1023
 
 #define FPS             60
+
+#define PI 3.14159265358979323846
+#define DEG2RAD(DEG) ((DEG) * (PI/180.0))
+
+/***********************/
+/* ANIMATION FACILITES */
+/***********************/
+
+#define START() if (tic == 1 && onTic)
+#define ON_TIC(T) else if (tic == T && onTic)
+#define TO_TIC(T) else if (tic <= T)
+#define END() else { exit(0); }
+
+
+float cos_arr[360];
+float sin_arr[360];
+#define COS(DEG) (cos_arr[int(DEG) % 360])
+#define SIN(DEG) (sin_arr[int(DEG) % 360])
+
+#define LOAD_COSIN() for(int i = 0; i < 360; ++i) { \
+    cos_arr[i] = cos(DEG2RAD(i));                   \
+    sin_arr[i] = sin(DEG2RAD(i)); }
+
+/*********/
+/* TYPES */
+/*********/
 
 struct vec2
 {
@@ -122,6 +152,8 @@ void getCamera(const vec3& origin, const vec3& target, vec3& n, vec3& u, vec3& v
 
 int main()
 {
+    LOAD_COSIN();
+
     // create the window
     sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "OpenGL", sf::Style::Default, sf::ContextSettings(32));
     window.setVerticalSyncEnabled(false);
@@ -238,57 +270,21 @@ int main()
     GLuint lightsNbLoc = glGetUniformLocation(p, "lNb");
     GLuint lightsLoc = glGetUniformLocation(p, "lights");
 
-    /************************/
-    /* SCENE INITIALISATION */
-    /************************/
-
-    // objects
-    objectsNb = 4;
-
-    spheres[0] = {-100,0,0, 60};
-    colors[0] = {0,1,0};
-    attributes[0] = {.5, .5, 8.0};
-
-    spheres[1] = {100,0,0, 60};
-    colors[1] = {1,0,0};
-    attributes[1] = {.3, .7, 16.0};
-
-    spheres[2] = {0,0,100, 60};
-    colors[2] = {1,1,0};
-    attributes[2] = {0, 1.0, 8.0};
-
-    spheres[3] = {0,0,-100, 60};
-    colors[3] = {0,0,1};
-    attributes[3] = {0, 1.0, 8.0};
-
-    // spheres[4] = {0,0,-180, 20};
-    // colors[4] = {0,1,1};
-    // attributes[4] = {0, 1.0, 8.0};
-
-
-    // lights
-    lightsNb = 1;
-    lights[0] = {0,200,0, 1.0};
-    // lights[0] = {0,0,-200, 1.0};
-    // lights[1] = {0,0,-200, 1.0};
-    // lights[2] = {-200,0,0, 1.0};
-    // lights[3] = {200,0,0, 1.0};
-
     /*************/
     /* MAIN LOOP */
     /*************/
 
-    // deleteme
-    focal = width / 45.0;
-    focal = -.1;
-
     unsigned tic = 0; // tempo indicator
+    bool onTic = false; // on tempo indicator
     double t, t_; // bpm indicator (and previous)
     int u = (60000 / (BPM * 2)); // bpm factor
-    int T = 0; // real time
+    int T = 0; // real time in ms
 
-    bool firstTime = true;
     bool running = true;
+    bool firstTime = true;
+    bool updateCamera = false;
+    bool updateScene = false;
+    bool updateLights = false;
 
     while (running)
     {
@@ -303,44 +299,84 @@ int main()
 
         lastTime = time;
 
-        // handle events
-        // sf::Event event;
-        // while (window.pollEvent(event))
-        // {
-        //     if (event.type == sf::Event::Closed)
-        //     {
-        //         // end the program
-        //         running = false;
-        //     }
-        //     else if (event.type == sf::Event::Resized)
-        //     {
-        //         // adjust the viewport when the window is resized
-        //         glViewport(0, 0, event.size.width, event.size.height);
-        //         glUniform2f(glGetUniformLocation(p, "resolution"),
-        //                     event.size.width, event.size.height);
-        //         width = event.size.width;
-        //         height = event.size.height;
-        //     }
-        // }
-
         // clear the buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        bool updateCamera = true;
-        bool updateScene = false;
-        bool updateLights = true;
-
+        // compute time and tempo
         T = time.asMilliseconds();
         t = 2 * (double(T % u) / u) - 1.0;
+        onTic = false;
         if (t_ > 0 && t < 0)
+        {
+            onTic = true;
             ++tic;
+            std::cout << tic << "\n";
+        }
         t_ = t;
 
-        cameraOrigin.z -= 10;
+        START() {
 
-        lights[0].x = cameraOrigin.x;
-        lights[0].y = cameraOrigin.y;
-        lights[0].z = cameraOrigin.z;
+            lightsNb = 1;
+            lights[0] = {0,0,0, 1.0};
+
+            cameraOrigin = {0,200,-4000};
+            cameraTarget = {0,0,0};
+
+            objectsNb = 1;
+
+            spheres[0] = {0,0,0, 1000};
+            colors[0] = {.6, .6, .6};
+            attributes[0] = {.5, .5, 8};
+
+            objectsNb = 19;
+            for (int i = 0; i < 18; ++i)
+            {
+                // float c = cos(DEG2RAD(i * 20.0));
+                // float s = sin(DEG2RAD(i * 20.0));
+                float c = COS(i * 20);
+                float s = SIN(i * 20);
+                spheres[i+1] = {1400 * c, 0, 1400 * s, 100};
+                colors[i+1] = {1,1,1};
+                attributes[i+1] = {.5,.1,16};
+            }
+
+            updateCamera = true;
+            updateScene = true;
+
+        } TO_TIC (20) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 100);
+                float s = SIN(i * 20 + double(T) / 100);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].z = 1400 * s;
+            }
+
+            updateScene = true;
+
+        } TO_TIC (100) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 100);
+                float s = SIN(i * 20 + double(T) / 100);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].z = 1400 * s;
+                spheres[i+1].y += 1;
+            }
+
+            updateScene = true;
+
+        } END();
+
+        if (updateCamera)
+        {
+            updateLights = true;
+            lights[0].x = cameraOrigin.x;
+            lights[0].y = cameraOrigin.y;
+            lights[0].z = cameraOrigin.z;
+        }
 
         if (updateCamera || firstTime)
         {
