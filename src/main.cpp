@@ -21,6 +21,8 @@
 #define PI 3.14159265358979323846
 #define DEG2RAD(DEG) ((DEG) * (PI/180.0))
 
+double SPEED =          1.0;
+
 /***********************/
 /* ANIMATION FACILITES */
 /***********************/
@@ -36,9 +38,16 @@ float sin_arr[360];
 #define COS(DEG) (cos_arr[int(DEG) % 360])
 #define SIN(DEG) (sin_arr[int(DEG) % 360])
 
+#define RAD2DEG(RAD) (180 * RAD / PI)
+
 #define LOAD_COSIN() for(int i = 0; i < 360; ++i) { \
     cos_arr[i] = cos(DEG2RAD(i));                   \
     sin_arr[i] = sin(DEG2RAD(i)); }
+
+double getNote(int ms, double BPM, double note)
+{
+    return .5 * COS(RAD2DEG(ms * 2 * PI / (60000 / double(BPM * note)))) + .5;
+}
 
 /*********/
 /* TYPES */
@@ -224,7 +233,7 @@ int main()
 
     sf::Music music;
     music.openFromFile("music.ogg");
-    music.setPitch(1.0);
+    music.setPitch(SPEED);
     music.play();
 
     // tempo
@@ -239,8 +248,8 @@ int main()
     /******************/
 
     // camera
-    vec3 cameraOrigin = {0, 100, -200};
-    vec3 cameraTarget = {0, 0, 0};
+    vec3 cameraOrigin;
+    vec3 cameraTarget;
     vec3 U, V, cameraNormal;
     float focal;
 
@@ -276,9 +285,9 @@ int main()
 
     unsigned tic = 0; // tempo indicator
     bool onTic = false; // on tempo indicator
-    double t, t_; // bpm indicator (and previous)
-    int u = (60000 / (BPM * 2)); // bpm factor
-    int T = 0; // real time in ms
+    double t = 1, t_; // bpm indicator (and previous)
+    // int u = (60000 / (BPM)); // bpm factor
+    double T = 0; // real time in ms
 
     bool running = true;
     bool firstTime = true;
@@ -303,15 +312,21 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // compute time and tempo
-        T = time.asMilliseconds();
-        t = 2 * (double(T % u) / u) - 1.0;
+        T = time.asMilliseconds() * SPEED;
+        t = getNote(T, BPM, 1) - .5;
+
         onTic = false;
         if (t_ > 0 && t < 0)
         {
+            // std::cout << tic << "\n";
             onTic = true;
             ++tic;
         }
         t_ = t;
+
+        updateScene = false;
+        updateCamera = false;
+        updateLights = false;
 
         START() {
 
@@ -330,19 +345,17 @@ int main()
             objectsNb = 19;
             for (int i = 0; i < 18; ++i)
             {
-                // float c = cos(DEG2RAD(i * 20.0));
-                // float s = sin(DEG2RAD(i * 20.0));
                 float c = COS(i * 20);
                 float s = SIN(i * 20);
                 spheres[i+1] = {1400 * c, 0, 1400 * s, 100};
-                colors[i+1] = {1,1,1};
-                attributes[i+1] = {.5,.1,16};
+                colors[i+1] = {1,1,0};
+                attributes[i+1] = {.7,.5,16};
             }
 
             updateCamera = true;
             updateScene = true;
 
-        } TO_TIC (20) {
+        } TO_TIC (10) {
 
             for (int i = 0; i < 18; ++i)
             {
@@ -354,7 +367,7 @@ int main()
 
             updateScene = true;
 
-        } TO_TIC (100) {
+        } TO_TIC (22) {
 
             for (int i = 0; i < 18; ++i)
             {
@@ -362,10 +375,172 @@ int main()
                 float s = SIN(i * 20 + double(T) / 50);
                 spheres[i+1].x = 1400 * c;
                 spheres[i+1].z = 1400 * s;
-                spheres[i+1].y += 2;
+                spheres[i+1].y += 5;
             }
 
             updateScene = true;
+
+        } ON_TIC (23) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20);
+                float s = SIN(i * 20);
+                spheres[i+1] = {1400 * c, 1400 * s, 0, 100};
+                colors[i+1] = {1,1,0};
+                attributes[i+1] = {.7,.5,16};
+            }
+
+        } TO_TIC (31) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].y = 1400 * s;
+            }
+
+            updateScene = true;
+
+        } ON_TIC (32) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20);
+                float s = SIN(i * 20);
+                spheres[i+1] = {1400 * c, 0, 1400 * s, 100};
+                colors[i+1] = {1,1,0};
+                attributes[i+1] = {.7,.5,16};
+            }
+
+            cameraOrigin = {0, 2000,-4000};
+            updateCamera = true;
+            updateScene = true;
+
+        } TO_TIC (38) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].z = 1400 * s;
+            }
+
+            updateScene = true;
+
+        } ON_TIC (39) {
+
+            cameraOrigin = {-2000, -2000,-4000};
+            updateCamera = true;
+
+        } TO_TIC (45) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].z = 1400 * s;
+            }
+
+            updateScene = true;
+
+        } ON_TIC (46) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20);
+                float s = SIN(i * 20);
+                spheres[i+1] = {1400 * c, 1400 * s, 0, 100};
+                attributes[i+1] = {.7,.5,16};
+            }
+
+        } TO_TIC (63) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].y = 1400 * s;
+            }
+
+            updateScene = true;
+
+        } ON_TIC (64) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20);
+                float s = SIN(i * 20);
+                spheres[i+1] = {1400 * c, 0, 1400 * s, 100};
+                colors[i+1] = {1,1,0};
+                attributes[i+1] = {.7,.5,16};
+            }
+
+            cameraOrigin = {0, 0,-4000};
+            updateCamera = true;
+            updateScene = true;
+
+        } TO_TIC (70) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].z = 1400 * s;
+                float color = getNote(T, BPM, 1);
+                colors[i+1] = {1, 1-color, color};
+            }
+
+            updateScene = true;
+
+        } TO_TIC (200) {
+
+            for (int i = 0; i < 18; ++i)
+            {
+                float c = COS(i * 20 + double(T) / 50);
+                float s = SIN(i * 20 + double(T) / 50);
+                spheres[i+1].x = 1400 * c;
+                spheres[i+1].z = 1400 * s;
+                float color = getNote(T, BPM, 1);
+                colors[i+1] = {1, 1-color, color};
+            }
+
+            // cameraOrigin.x = 4000 * getNote(T, BPM, 8);
+            // cameraOrigin.y += 2;
+            // cameraOrigin.z = -4000 * SIN(T / 100);
+
+            updateCamera = true;
+            updateScene = true;
+
+        // } ON_TIC (101) {
+
+        //     for (int i = 0; i < 18; ++i)
+        //     {
+        //         float c = COS(i * 20);
+        //         float s = SIN(i * 20);
+        //         spheres[i+1] = {1400 * c, 1400 * s, 0, 100};
+        //         colors[i+1] = {1,1,0};
+        //         attributes[i+1] = {.7,.5,16};
+        //     }
+
+        // } TO_TIC (120) {
+
+        //     for (int i = 0; i < 18; ++i)
+        //     {
+        //         float c = COS(i * 20 + double(T) / 50);
+        //         float s = SIN(i * 20 + double(T) / 50);
+        //         spheres[i+1].x = 1400 * c;
+        //         spheres[i+1].y = 1400 * s;
+        //     }
+
+        //     updateScene = true;
+
+
 
         } END();
 
